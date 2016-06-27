@@ -1,0 +1,36 @@
+---
+  - name: Rsync full code
+    synchronize: src=../../../ dest={{ deploy_path }} delete=yes recursive=yes rsync_opts=--exclude-from=./rsync-excludes
+
+  - name: Copy server configuration
+    template:
+      src=./../templates/app.conf
+      dest=/etc/nginx/conf.d/app.conf
+      mode=0644
+    become: yes
+
+  - name: If Nginx default config exist
+    stat: path="/etc/nginx/sites-enabled/default"
+    register: nginx_default
+
+  - shell: rm -rf /etc/nginx/sites-enabled/default
+    when: nginx_default.stat.exists == True
+
+  - name: Copy upstream configuration
+    template:
+      src=./../templates/app_upstream.conf
+      dest=/etc/nginx/sites-available/app_upstream.conf
+      mode=0644
+    become: yes
+
+  - name: Create symlink to app_upstream.conf
+    file:
+      src=/etc/nginx/sites-available/app_upstream.conf
+      dest=/etc/nginx/sites-enabled/app_upstream.conf
+      state=link
+      force=yes
+
+  - name: Run deploy
+    command: ./deploy.sh {{ image }} {{ tag }} chdir={{ deploy_path }}
+    ignore_errors: yes
+    become: yes

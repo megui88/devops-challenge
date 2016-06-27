@@ -1,0 +1,10 @@
+- name: Provition and Deploy App
+  hosts: all
+  gather_facts: false
+  vars:
+    deploy_path: /var/deploy
+    image: tactivos/devops-challenge
+    tag: 0.0.1
+  roles:
+    - { role: provision }
+    - { role: deploy }

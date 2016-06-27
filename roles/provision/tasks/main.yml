@@ -1,0 +1,50 @@
+---
+  - name: Is folder exist
+    stat: path="{{ deploy_path }}"
+    register: fs_exist
+
+  - name: Create deploy folder structure
+    file: path={{ deploy_path }} state=directory
+    when: fs_exist.stat.exists == False
+
+  - name: Packages installation
+    apt: name={{item}} state=latest force=yes
+    with_items:
+      - software-properties-common
+      - apt-transport-https
+      - ca-certificates
+    become: yes
+
+  - name: Add apt key Docker
+    apt_key: keyserver=hkp://p80.pool.sks-keyservers.net:80 id=58118E89F3A912897C070ADBF76221572C52609D
+    become: yes
+
+  - name: Add Docker sources list
+    template:
+      src=./../templates/docker.list
+      dest=/etc/apt/sources.list.d/docker.list
+      mode=0644
+    become: yes
+
+  - name: Nginx repository
+    apt_repository: repo='ppa:nginx/stable'
+    become: yes
+
+  - name: Install linux image
+    shell: apt-update; apt-get -y install linux-image-extra-$(uname -r) linux-image-generic-lts-trusty
+    become: yes
+
+  - name: Packages installation
+    apt: name={{item}} state=latest update_cache=yes force=yes
+    with_items:
+      - curl
+      - nginx
+      - docker-engine
+    become: yes
+
+  - name: Add docker-compose
+    shell: curl -L https://github.com/docker/compose/releases/download/1.6.2/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
+    become: yes
+
+  - shell: chmod +x /usr/local/bin/docker-compose
+    become: yes

@@ -1,0 +1,15 @@
+version: "2"
+
+services:
+  app:
+    image: tactivos/devops-challenge:0.0.1
+    restart: unless-stopped
+    depends_on:
+      - db
+    expose:
+      - "3000"
+    ports:
+      - "9001:3000"
+
+  db:
+    image: mongo

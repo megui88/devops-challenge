@@ -1,0 +1,5 @@
+---
+  deploy_path: /var/docker/
+  app_port: 9001
+  image: ''
+  tag: ''
